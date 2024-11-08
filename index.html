@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magic 8-Ball</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.9.1/dist/gsap.min.js"></script>
+  <script src="https://unpkg.com/lucide-react"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+  /* Glow effect for magic ball */
+  #magic-ball.active {
+    box-shadow: 0 0 20px 5px rgba(0, 0, 255, 0.5);
+  }
+
+  /* Sparkle/particle effect styling */
+  .particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+  }
+    /* Optional: Add a transition to the white background and text */
+  .bg-white {
+    transition: all 0.3s ease-in-out;
+  }
+
+</style>
+
+</head>
+<body class="bg-gradient-to-br from-indigo-500 to-purple-700 h-screen flex items-center justify-center overflow-hidden">
+
+  <div id="app" class="text-center text-white space-y-6">
+    <!-- Magic 8-Ball with particle container -->
+    <div id="particle-container" class="absolute inset-0 pointer-events-none"></div>
+    
+    <!-- 8-Ball container -->
+    <div id="magic-ball" class="relative w-48 h-48 bg-black rounded-full shadow-lg flex items-center justify-center border-4 border-blue-300 border-opacity-50">
+      <!-- Circular Answer Display -->
+      <div id="answer-circle" class="absolute top-1/2 transform -translate-y-1/2 text-center w-28 h-28 bg-blue-500 text-white rounded-full flex items-center justify-center p-4 hidden">
+        <span id="answer" class="text-xs font-bold leading-tight"></span>
+      </div>
+      
+      <!-- Circular "8" Background -->
+      <div class="absolute bg-white w-20 h-20 rounded-full flex items-center justify-center">
+        <span class="text-4xl font-bold text-black">8</span>
+      </div>
+    </div>
+
+    <!-- Input and Button -->
+    <div class="flex flex-col items-center space-y-4">
+      <input id="question" type="text" placeholder="Ask a question..." 
+             class="rounded-full p-3 w-72 text-center text-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-300">
+      <button id="shake" class="px-8 py-2 rounded-full bg-blue-600 hover:bg-blue-500 transition-all duration-300 focus:ring-4 focus:ring-blue-300">
+        <lucide-icon name="shake" class="inline-block w-5 h-5 mr-2"></lucide-icon> Shake!
+      </button>
+    </div>
+  </div>
+   <script>
+     // Array of possible answers
+const answers = [
+  "Yes, definitely!",
+  "It is certain.",
+  "Without a doubt.",
+  "Reply hazy, try again.",
+  "Ask again later.",
+  "Better not tell you now.",
+  "Don't count on it.",
+  "My sources say no.",
+  "Very doubtful."
+];
+
+// Elements
+const questionInput = document.getElementById("question");
+const shakeButton = document.getElementById("shake");
+const answerDisplay = document.getElementById("answer");
+const magicBall = document.getElementById("magic-ball");
+const answerCircle = document.getElementById("answer-circle");
+const particleContainer = document.getElementById("particle-container");
+
+// Vibration effect function
+function vibrateMagicBall() {
+  gsap.fromTo(
+    magicBall,
+    { x: -2, y: -2 },
+    {
+      x: 2,
+      y: 2,
+      duration: 0.05,
+      repeat: 10,
+      yoyo: true,
+      ease: "power1.inOut",
+      onComplete: () => rollMagicBall(),
+    }
+  );
+}
+
+// Rolling effect for final answer reveal
+function rollMagicBall() {
+  gsap.to(magicBall, {
+    rotation: 360,
+    duration: 0.6,
+    scale: 1.1,
+    ease: "elastic.out(1, 0.3)",
+    onComplete: () => revealAnswer(),
+  });
+}
+
+
+function revealAnswer() {
+  const eightBackground = magicBall.querySelector(".bg-white"); // Select the "8" background
+  const eightText = eightBackground.querySelector("span"); // Select the "8" text
+  
+  // Hide the "8" and its background
+  gsap.to(eightBackground, { scale: 0, opacity: 0, duration: 0.3 });
+  
+  // Show the answer
+  answerCircle.style.display = "flex"; // Ensure it's visible immediately
+  gsap.to(answerCircle, { scale: 1.2, opacity: 1, duration: 0.3 });
+  gsap.to(answerCircle, { scale: 1, duration: 0.2 });
+  
+  // Add particle effect
+  createParticles();
+
+  // Hide the answer and show the "8" again after 3 seconds
+  setTimeout(() => {
+    gsap.to(answerCircle, { scale: 0.8, opacity: 0, duration: 0.2 });
+    setTimeout(() => {
+      answerCircle.style.display = "none"; // Hide answer circle
+      gsap.to(eightBackground, { scale: 1, opacity: 1, duration: 0.3 }); // Restore the "8"
+    }, 200); // Match with animation duration
+    magicBall.classList.remove("active");
+  }, 3000);
+}
+
+
+// Shake button event listener
+shakeButton.addEventListener("click", () => {
+  const question = questionInput.value.trim();
+
+  // Validate question input
+  if (!question) {
+    alert("Please ask a question!");
+    return;
+  }
+
+  // Clear input
+  questionInput.value = "";
+
+  // Set random answer
+  const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
+  answerDisplay.innerText = randomAnswer;
+
+  // Start vibration
+  vibrateMagicBall();
+});
+
+   </script>
+</body>
+</html>
